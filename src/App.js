@@ -5,7 +5,8 @@ import Item from './components/Item';
 
 import Matrix from './Matrix';
 
-import { CSSTransition, TransitionGroup } from "react-transition-group";
+import { compareArrays, getIndex } from './utilities';
+
 
 const pressedBtn = {
   background: '#e0e0e0',
@@ -20,25 +21,17 @@ const unpressedBtn = {
 
 function App() {
 
-  const [game, setGame] = React.useState(1)
-
-  //const grid = React.useMemo(() => new Matrix([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]), [game])
-  //[2, 4, 8, 16], [4, 2, 16, 8], [8, 16, 2, 4], [5, 5, 4, 16]
-  //[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]
-
   const ref = React.useRef(new Matrix())
   const grid = ref.current
 
-
+  const [game, setGame] = React.useState(1)
   const [gridData, setGridData] = React.useState([])
+  const [newNum, setNewNum] = React.useState(0)
   const [counter, setCounter] = React.useState(0)
   const [endGame, setEndGame] = React.useState(false)
   const [bestScore, setBestScore] = React.useState(0)
-
   const [btnNewStyle, setBtnNewStyle] = React.useState(unpressedBtn)
   const [btnCloseStyle, setBtnCloseStyle] = React.useState(unpressedBtn)
-
-
 
   const sum = grid.sumValues.bind(grid)
   const move = grid.moveZero.bind(grid)
@@ -56,7 +49,7 @@ function App() {
   }, [game])
 
   React.useEffect(() => {
-    window.addEventListener('keydown', e => {
+    window.addEventListener('keyup', e => {
       switch (true) {
         case e.key === 'ArrowUp':
           up()
@@ -77,54 +70,24 @@ function App() {
   }, [])
 
 
-  function compareArrays(prev, next) {
-    let result = []
-    if (prev.length < 1) {
-      next.forEach(el => {
-        el.forEach(item => result.push({ id: Math.random(), value: item }))
-      })
-    }
-    else {
-      let index = 0
-      next.forEach(arr => {
-        arr.forEach(el => {
-          if (el !== prev[index].value) {
-            result.push({ id: Math.random(), value: el })
-            index++
-          }
-          else {
-            result.push(prev[index])
-            index++
-          }
-        })
-      })
-    }
-    return result
-  }
-
-
   const left = function () {
     sum(false)
     move(false)
-    setGridData(prev => compareArrays(prev, grid.data))
     setCounter(grid.count)
-    setTimeout(() => {
-      add()
-      setEndGame(grid.endGame)
-      setGridData(prev => compareArrays(prev, grid.data))
-    }, 300)
+    add()
+    setNewNum(getIndex(grid.newValue))
+    setEndGame(grid.endGame)
+    setGridData(prev => compareArrays(prev, grid.data))
   }
 
   const right = function () {
     sum(true)
     move(true)
-    setGridData(prev => compareArrays(prev, grid.data))
     setCounter(grid.count)
-    setTimeout(() => {
-      add()
-      setEndGame(grid.endGame)
-      setGridData(prev => compareArrays(prev, grid.data))
-    }, 300)
+    add()
+    setNewNum(getIndex(grid.newValue))
+    setEndGame(grid.endGame)
+    setGridData(prev => compareArrays(prev, grid.data))
   }
 
   const up = function () {
@@ -132,13 +95,11 @@ function App() {
     sum(false)
     move(false)
     change()
-    setGridData(prev => compareArrays(prev, grid.data))
     setCounter(grid.count)
-    setTimeout(() => {
-      add()
-      setEndGame(grid.endGame)
-      setGridData(prev => compareArrays(prev, grid.data))
-    }, 300)
+    add()
+    setNewNum(getIndex(grid.newValue))
+    setEndGame(grid.endGame)
+    setGridData(prev => compareArrays(prev, grid.data))
   }
 
   const down = function () {
@@ -146,38 +107,29 @@ function App() {
     sum(true)
     move(true)
     change()
-    setGridData(prev => compareArrays(prev, grid.data))
     setCounter(grid.count)
-    setTimeout(() => {
-      add()
-      setEndGame(grid.endGame)
-      setGridData(prev => compareArrays(prev, grid.data))
-    }, 300)
+    add()
+    setNewNum(getIndex(grid.newValue))
+    setEndGame(grid.endGame)
+    setGridData(prev => compareArrays(prev, grid.data))
   }
-
 
 
   return (
     <div className="App" >
       <div className='squere' >
-        <TransitionGroup className='box'>
-          {gridData.map(obj =>
-            <CSSTransition key={obj.id} timeout={{
-              appear: 500,
-              enter: 1500,
-              exit: 0,
-            }} classNames={obj.value === 0 ? '' : 'i'} >
-              <Item key={Math.random()} value={obj.value !== 0 ? obj.value : null}></Item>
-            </CSSTransition>
-          )}
-        </TransitionGroup>
-      </div>
-      <div className='info'>
-        <div className='counter'>
-          <p>Total: {counter}</p>
+        <div className='info'>
+          <div className='counter'>
+            <p>Total: {counter}</p>
+          </div>
+          <div className='best_score'>
+            <p>Best score: {bestScore}</p>
+          </div>
         </div>
-        <div className='best_score'>
-          <p>Best score: {bestScore}</p>
+        <div className='box'>
+          {gridData.map((obj, index) =>
+            <Item key={Math.random()} value={obj.value !== 0 ? obj.value : null} isNew={index === newNum ? true : false}></Item>
+          )}
         </div>
       </div>
       <div className='bg'>

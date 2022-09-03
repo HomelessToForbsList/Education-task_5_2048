@@ -3,7 +3,8 @@ class Matrix {
     this.array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     this.countValue = 0
     this.isGameOver = false
-    this.scores = [1,5,10]
+    this.scores = [0]
+    this.newValueIndex = []
   }
 
   get data() {
@@ -22,23 +23,31 @@ class Matrix {
     this.countValue += value
   }
 
-  get endGame(){
+  get endGame() {
     return this.isGameOver
   }
 
-  set endGame(value){
+  set endGame(value) {
     this.isGameOver = value
   }
 
-  get bestScore(){
+  get bestScore() {
     return this.scores
   }
 
-  set bestScore(value){
-    this.scores = [...this.scores,value]
+  set bestScore(value) {
+    this.scores = [...this.scores, value]
   }
 
-  updateData(){
+  get newValue() {
+    return this.newValueIndex
+  }
+
+  set newValue(coordinates) {
+    this.newValueIndex = coordinates
+  }
+
+  updateData() {
     this.endGame = false
     this.data = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
   }
@@ -54,6 +63,7 @@ class Matrix {
     }
     this.data = result
   }
+
   sumValues(needReverse) {
     const newData = this.data.map(arr => {
       if (needReverse) arr = arr.reverse()
@@ -78,6 +88,7 @@ class Matrix {
     })
     this.data = newData
   }
+
   moveZero(needReverse) {
     const movedArray = this.data.map(arr => {
       if (needReverse) arr = arr.reverse()
@@ -100,91 +111,96 @@ class Matrix {
     })
     this.data = movedArray
   }
+
   createValue() {
     const arr = this.data
     let canAddValue = false
     arr.forEach(arr => arr.forEach(value => {
-      if(value === 0) canAddValue = true
+      if (value === 0) canAddValue = true
     }))
-    if(canAddValue){
+    if (canAddValue) {
       const repeat = this.createValue.bind(this)
-    let result
-    const tempMatrix = Math.random()
-    let indexMatrix
-    const value = tempMatrix > 0.5 ? 4 : 2
-    let created = false
-    function add(indexMatrix) {
-      const tempArr = Math.random()
+      let result
+      const tempMatrix = Math.random()
+      let indexMatrix
       let indexArr
+      let coordinates
+      const value = tempMatrix > 0.5 ? 4 : 2
+      let created = false
+      function add(indexMatrix) {
+        const tempArr = Math.random()
+        switch (true) {
+          case tempArr >= 0 && tempArr <= 0.25:
+            indexArr = 0
+            break;
+          case tempArr > 0.25 && tempArr <= 0.5:
+            indexArr = 1
+            break;
+          case tempArr > 0.5 && tempArr <= 0.75:
+            indexArr = 2
+            break;
+          case tempArr > 0.75 && tempArr < 1:
+            indexArr = 3
+            break;
+          default:
+            break;
+        }
+        if (!created && arr[indexMatrix][indexArr] === 0) {
+          arr[indexMatrix][indexArr] = value
+          coordinates = [indexMatrix, indexArr]
+          result = arr
+          created = true
+        }
+        else {
+          repeat()
+        }
+      }
       switch (true) {
-        case tempArr >= 0 && tempArr <= 0.25:
-          indexArr = 0
+        case tempMatrix >= 0 && tempMatrix <= 0.25:
+          indexMatrix = 0
           break;
-        case tempArr > 0.25 && tempArr <= 0.5:
-          indexArr = 1
+        case tempMatrix > 0.25 && tempMatrix <= 0.5:
+          indexMatrix = 1
           break;
-        case tempArr > 0.5 && tempArr <= 0.75:
-          indexArr = 2
+        case tempMatrix > 0.5 && tempMatrix <= 0.75:
+          indexMatrix = 2
           break;
-        case tempArr > 0.75 && tempArr < 1:
-          indexArr = 3
+        case tempMatrix > 0.75 && tempMatrix < 1:
+          indexMatrix = 3
           break;
         default:
           break;
       }
-      if (!created && arr[indexMatrix][indexArr] === 0) {
-        arr[indexMatrix][indexArr] = value
-        result = arr
-        created = true
+      add(indexMatrix)
+      if (result !== undefined) {
+        this.data = result.concat()
+        this.chekEndGame(result)
+        this.newValue = coordinates
       }
-      else {
-        repeat()
-      }
-    }
-    switch (true) {
-      case tempMatrix >= 0 && tempMatrix <= 0.25:
-        indexMatrix = 0
-        break;
-      case tempMatrix > 0.25 && tempMatrix <= 0.5:
-        indexMatrix = 1
-        break;
-      case tempMatrix > 0.5 && tempMatrix <= 0.75:
-        indexMatrix = 2
-        break;
-      case tempMatrix > 0.75 && tempMatrix < 1:
-        indexMatrix = 3
-        break;
-      default:
-        break;
-    }
-    add(indexMatrix)
-    if (result !== undefined) {
-      this.data = result.concat()
-      this.chekEndGame(result)
-    }
     }
   }
-  chekEndGame(newData){
-    let arrResults =[]
-    newData.forEach((item,index)=>{
-      item.forEach((el,i) =>{
+
+  chekEndGame(newData) {
+    let arrResults = []
+    newData.forEach((item, index) => {
+      item.forEach((el, i) => {
         let result = []
-        let up = index === 0 ? null : newData[index-1][i]
-        let down = index === newData.length-1 ? null : newData[index+1][i]
-        let right = i === item.length-1 ? null : item[i+1]
-        let left = i === 0 ? null : item[i-1]
-        if(up !== el && up !== 0) result.push(false)
+        let up = index === 0 ? null : newData[index - 1][i]
+        let down = index === newData.length - 1 ? null : newData[index + 1][i]
+        let right = i === item.length - 1 ? null : item[i + 1]
+        let left = i === 0 ? null : item[i - 1]
+        if (up !== el && up !== 0) result.push(false)
         else result.push(true)
-        if( down !== el && down !== 0) result.push(false)
+        if (down !== el && down !== 0) result.push(false)
         else result.push(true)
-        if(right !== el && right !== 0) result.push(false)
+        if (right !== el && right !== 0) result.push(false)
         else result.push(true)
-        if(left !== el && left !== 0) result.push(false)
+        if (left !== el && left !== 0) result.push(false)
         else result.push(true)
         arrResults = arrResults.concat(result)
       })
     })
-    if(arrResults.indexOf(true) < 0) {
+    if (arrResults.indexOf(true) < 0) {
       this.endGame = true
       this.bestScore = this.count
       this.count = -this.count
